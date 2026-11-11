@@ -1,0 +1,10 @@
+{
+  "rank_order": ["Kurucu", "Geliştirici", "Moderatör", "Rehber", "Deneme Rehber"],
+  "staff": {
+    "Zyven": "Geliştirici",
+    "Bywaffle": "Kurucu",
+    "neymar11": "Moderatör",
+    "ornek": "Deneme Rehber",
+    "ornek2": "Rehber"
+  }
+}
