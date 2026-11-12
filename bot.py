@@ -284,6 +284,23 @@ def main():
             if maybe_post(state, online_staff, now_ts):
                 print("Mesaj gonderildi.")
             save_state(state)
+        else:
+            # Squaremap gecici olarak yanit vermese bile 10 dakikalik Discord logunu durdurma.
+            # Eski online durumunu kesin bilgi gibi gostermek yerine veri hatasini acikca bildir.
+            last = state["last_post"]
+            if last is None or (now_ts - last) >= (POST_MINUTES - 0.5) * 60:
+                send({
+                    "title": "⚠️ AVENOR MC YETKİLİ LOGU",
+                    "description": (
+                        "Canli oyuncu listesi su anda alinamiyor. "
+                        "Bu nedenle guncel cevrimici durum dogrulanamadi; "
+                        "bir sonraki kontrolde tekrar denenecek."
+                    ),
+                    "footer": {"text": "AvenorMC · Veri kaynagi gecici olarak erisilemiyor"},
+                })
+                state["last_post"] = now_ts
+                save_state(state)
+                print("Veri kaynagi hatasi loglandi.")
         # Sonraki bakis calisma suresini asacaksa dongu biter
         if time.time() + POLL_SECONDS - start > RUN_MINUTES * 60:
             break
