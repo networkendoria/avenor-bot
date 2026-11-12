@@ -4,13 +4,16 @@
     "SakaryaMan": 101.978,
     "Geredeli1871": 20.361,
     "neymar11": 72.509,
-    "Noway7": 38.227
+    "Noway7": 38.227,
+    "TwexSnowyOrg": 7.036
   },
   "last_run": null,
   "prev_online": [],
-  "last_poll": 1794494448.4555967,
-  "last_post": 1794494266.4252598,
-  "window_seen": {},
+  "last_poll": 1794496031.9654045,
+  "last_post": 1794495489.154613,
+  "window_seen": {
+    "TwexSnowyOrg": "Deneme Rehber"
+  },
   "history": {},
   "last_monthly": null
 }
