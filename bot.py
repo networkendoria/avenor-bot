@@ -41,13 +41,25 @@ def get_online_players():
     return [p["name"].lstrip(".") for p in data.get("players", []) if p.get("name")]
 
 
-def send(content):
+EMBED_COLOR = 0xF1C40F  # sari serit
+
+
+def send(embed):
+    """Discord'a kenari renkli kutu (embed) olarak mesaj atar."""
+    embed = dict(embed)
+    embed["color"] = EMBED_COLOR
+    embed["timestamp"] = datetime.now(TZ).astimezone(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     if DRY_RUN:
-        print("----- DISCORD MESAJI -----")
-        print(content)
-        print("--------------------------")
+        print("----- DISCORD EMBED (sari serit) -----")
+        print("BASLIK:", embed.get("title"))
+        print("ACIKLAMA:", embed.get("description", ""))
+        for f in embed.get("fields", []):
+            print(f"  [ALAN] {f['name']}\n         {f['value']}".replace("\n", "\n         ", 0))
+        if embed.get("footer"):
+            print("ALT YAZI:", embed["footer"]["text"])
+        print("--------------------------------------")
         return
-    body = json.dumps({"content": content, "allowed_mentions": {"parse": []}}).encode()
+    body = json.dumps({"embeds": [embed], "allowed_mentions": {"parse": []}}).encode()
     req = urllib.request.Request(
         WEBHOOK,
         data=body,
@@ -108,8 +120,7 @@ def monthly_report(state, now_dt):
     # Rutbe gruplari ayri listelenir (staff.json -> monthly_groups). Her grubun ilk 3'u yazilir.
     groups = CFG.get("monthly_groups") or {"Yetkililer": RANK_ORDER}
     medals = ["🥇", "🥈", "🥉"]
-    lines = ["📊 **AYIN EN AKTİF YETKİLİLERİ**", "", "Son 1 ayda en çok aktif olanlar:"]
-    any_rows = False
+    fields = []
     for title, ranks in groups.items():
         ranked = sorted(
             (
@@ -121,13 +132,20 @@ def monthly_report(state, now_dt):
         )[:3]
         if not ranked:
             continue
-        any_rows = True
-        lines += ["", f"**{title}**"]
+        rows = []
         for i, (name, minutes) in enumerate(ranked):
             real, rank = STAFF[name.lower()]
-            lines.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
-    if any_rows:
-        send("\n".join(lines))
+            rows.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
+        fields.append({"name": title, "value": "\n".join(rows), "inline": False})
+    if fields:
+        send(
+            {
+                "title": "📊 AYIN EN AKTİF YETKİLİLERİ",
+                "description": "Son 1 ayda en çok aktif olanlar:",
+                "fields": fields,
+                "footer": {"text": "AvenorMC · Aylık yetkili aktifliği"},
+            }
+        )
 
 
 def check_new_day(state, now_dt):
@@ -139,9 +157,14 @@ def check_new_day(state, now_dt):
     if totals:
         top = max(totals, key=totals.get)
         send(
-            f"🏆 **GÜNÜN EN AKTİF YETKİLİSİ**\n\n"
-            f"Tebrikler **{top}**! Dün toplam **{fmt_time(totals[top])}** "
-            f"aktif oldun. Emeğin için teşekkürler! 🎉"
+            {
+                "title": "🏆 GÜNÜN EN AKTİF YETKİLİSİ",
+                "description": (
+                    f"Tebrikler **{top}**! Dün toplam **{fmt_time(totals[top])}** "
+                    f"aktif oldun. Emeğin için teşekkürler! 🎉"
+                ),
+                "footer": {"text": "AvenorMC · Günlük yetkili aktifliği"},
+            }
         )
         if state["date"]:
             state["history"][state["date"]] = dict(totals)
@@ -175,7 +198,7 @@ def poll_once(state, players, now_ts):
 
 
 def build_message(state, online_staff, seen=None):
-    """online_staff: su an online olanlar. seen: bu calisma boyunca gorulen tum yetkililer."""
+    """online_staff: su an online olanlar. seen: son mesajdan beri gorulen tum yetkililer."""
     now_names = {name for name, _ in online_staff}
     entries = dict(seen or {})
     for name, rank in online_staff:
@@ -184,23 +207,27 @@ def build_message(state, online_staff, seen=None):
         entries.items(),
         key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
     )
-    lines = ["**AVENOR MC AKTİF YETKİLİLER**", ""]
+    fields = []
     if rows:
         if len(now_names) == len(rows):
-            lines.append(f"{len(rows)} Yetkili çevrimiçi.")
+            desc = f"**{len(rows)} Yetkili çevrimiçi.**"
         else:
-            lines.append(
-                f"Son {int(POST_MINUTES)} dakikada {len(rows)} yetkili aktifti, {len(now_names)} yetkili şu an çevrimiçi."
+            desc = (
+                f"**Son {int(POST_MINUTES)} dakikada {len(rows)} yetkili aktifti, "
+                f"{len(now_names)} yetkili şu an çevrimiçi.**"
             )
-        lines.append("")
         for name, rank in rows:
             left = "" if name in now_names else " *(çıkış yaptı)*"
-            lines.append(f"- **{name}** × {rank}{left}")
-            lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
-            lines.append("")
+            fields.append(
+                {
+                    "name": f"🟢 {name} × {rank}" if not left else f"⚪ {name} × {rank}",
+                    "value": f"⏱️ Bugün **{fmt_time(state['minutes'].get(name, 0))}** toplam aktiflik{left}",
+                    "inline": False,
+                }
+            )
     else:
-        lines.append("Şu an çevrimiçi yetkili yok.")
-        lines.append("")
+        desc = "**Şu an çevrimiçi yetkili yok.**"
+
     # Bugun girip cikmis (yukarida listelenmeyen) yetkililerin gunluk aktifligi
     listed = {name for name, _ in rows}
     earlier = [
@@ -210,17 +237,25 @@ def build_message(state, online_staff, seen=None):
     ]
     earlier.sort(key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999)
     if earlier:
-        lines.append("**Bugün daha önce aktif olanlar:**")
-        lines.append("")
-        for name, rank in earlier:
-            lines.append(f"- **{name}** × {rank}")
-            lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
-            lines.append("")
-    lines.append(
-        f"**Not: Her {int(POST_MINUTES)} dakikada bir yetkililer mesaj olarak loglanır. "
-        "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
-    )
-    return "\n".join(lines)
+        lines = [
+            f"**{name}** × {rank} — {fmt_time(state['minutes'].get(name, 0))}"
+            for name, rank in earlier
+        ]
+        fields.append(
+            {"name": "📋 Bugün daha önce aktif olanlar", "value": "\n".join(lines), "inline": False}
+        )
+
+    return {
+        "title": "👥 AVENOR MC AKTİF YETKİLİLER",
+        "description": desc,
+        "fields": fields,
+        "footer": {
+            "text": (
+                f"AvenorMC · Her {int(POST_MINUTES)} dakikada bir loglanır · "
+                "Gün sonunda en aktif yetkili tebrik edilir"
+            )
+        },
+    }
 
 
 def maybe_post(state, online_staff, now_ts):
