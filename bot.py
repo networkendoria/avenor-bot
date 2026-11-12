@@ -5,7 +5,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Europe/Istanbul")
-INTERVAL_MIN = int(os.environ.get("INTERVAL_MIN", "30"))
+MAX_GAP_MIN = 40  # iki kontrol arasi bundan uzunsa (GitHub gecikmesi) en fazla bu kadar sayilir
+STATE_FILE = os.environ.get("STATE_FILE", "state.json")
 DRY_RUN = os.environ.get("DRY_RUN") == "1"  # 1 ise Discord'a gondermez, ekrana yazar
 WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "")
 if not WEBHOOK and not DRY_RUN:
@@ -53,7 +54,10 @@ def send(content):
 
 
 def fmt_time(minutes):
-    h, m = divmod(int(minutes), 60)
+    total = int(round(minutes))
+    if total < 1:
+        return "1 dakikadan az"
+    h, m = divmod(total, 60)
     if h and m:
         return f"{h} saat {m} dakika"
     if h:
@@ -63,19 +67,29 @@ def fmt_time(minutes):
 
 def load_state():
     try:
-        return json.load(open("state.json", encoding="utf-8"))
+        st = json.load(open(STATE_FILE, encoding="utf-8"))
     except Exception:
-        return {"date": "", "minutes": {}}
+        st = {}
+    st.setdefault("date", "")
+    st.setdefault("minutes", {})
+    st.setdefault("last_run", None)  # son basarili kontrolun zamani (epoch saniye)
+    st.setdefault("prev_online", [])  # son kontrolde online olan yetkililer
+    return st
+
+
+def save_state(state):
+    json.dump(state, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
 
 def main():
     now = datetime.now(TZ)
+    now_ts = float(os.environ.get("FAKE_NOW", now.timestamp()))  # FAKE_NOW sadece test icin
     today = now.strftime("%Y-%m-%d")
     state = load_state()
 
     # Gun degistiyse dunun birincisini tebrik et ve sifirla
-    if state.get("date") != today:
-        totals = state.get("minutes", {})
+    if state["date"] != today:
+        totals = state["minutes"]
         if totals:
             top = max(totals, key=totals.get)
             send(
@@ -83,20 +97,35 @@ def main():
                 f"Tebrikler **{top}**! Dün toplam **{fmt_time(totals[top])}** "
                 f"aktif oldun. Emeğin için teşekkürler! 🎉"
             )
-        state = {"date": today, "minutes": {}}
+        state["date"] = today
+        state["minutes"] = {}
 
     players = get_online_players()
     if players is None:
         print("Liste alinamadi, sayim yapilmadi.")
-        json.dump(state, open("state.json", "w", encoding="utf-8"), ensure_ascii=False)
+        save_state(state)
         return
 
     online_staff = []
     for p in players:
         if p.lower() in STAFF:
-            name, rank = STAFF[p.lower()]
-            state["minutes"][name] = state["minutes"].get(name, 0) + INTERVAL_MIN
-            online_staff.append((name, rank))
+            online_staff.append(STAFF[p.lower()])
+    now_names = {name for name, _ in online_staff}
+    prev_names = set(state["prev_online"])
+
+    # Iki kontrol arasinda gercekte gecen sure
+    if state["last_run"] is None:
+        elapsed = 0.0
+    else:
+        elapsed = max(0.0, min((now_ts - state["last_run"]) / 60.0, MAX_GAP_MIN))
+
+    # Iki kontrolde de online -> tam sure. Sadece birinde online (girdi/cikti) -> yarisi.
+    for name in now_names | prev_names:
+        credit = elapsed if (name in now_names and name in prev_names) else elapsed / 2
+        state["minutes"][name] = round(state["minutes"].get(name, 0) + credit, 2)
+
+    state["last_run"] = now_ts
+    state["prev_online"] = sorted(now_names)
 
     online_staff.sort(
         key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999
@@ -108,7 +137,7 @@ def main():
         lines.append("")
         for name, rank in online_staff:
             lines.append(f"- **{name}** × {rank}")
-            lines.append(f"{{ Bugün {fmt_time(state['minutes'][name])} toplam aktiflik }}")
+            lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
             lines.append("")
     else:
         lines.append("Şu an çevrimiçi yetkili yok.")
@@ -119,7 +148,7 @@ def main():
     )
 
     send("\n".join(lines))
-    json.dump(state, open("state.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    save_state(state)
 
 
 if __name__ == "__main__":
