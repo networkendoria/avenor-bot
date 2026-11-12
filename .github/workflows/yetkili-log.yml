@@ -2,14 +2,13 @@ name: Yetkili Log
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # yedek: zincir kopmussa yeniden baslatir
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
   actions: write
 
-# Ayni anda iki calisma olmasin; yenisi siraya girsin
 concurrency:
   group: yetkili-log
   cancel-in-progress: false
@@ -23,24 +22,42 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Baslangic zamanini kaydet
-        run: echo "START_TS=$(date +%s)" >> "$GITHUB_ENV"
-      # Her calisma ~28 dakika boyunca dakikada bir siteye bakar, sonunda mesaj atar
+      - name: Baslangic durumunu yedekle
+        run: |
+          cp state.json /tmp/state_base.json
+          echo "START_TS=$(date +%s)" >> "$GITHUB_ENV"
       - name: Botu calistir
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           POLL_SECONDS: "60"
           RUN_MINUTES: "28"
         run: python bot.py
-      - name: Sureleri kaydet
+      - name: Sureleri cakismasiz kaydet
         if: always()
         run: |
+          set -e
           git config user.name "avenor-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add state.json
-          git diff --staged --quiet || (git commit -m "state guncelle" && git pull --rebase origin main && git push)
-      # GitHub'in zamanlayicisi guvenilir olmadigi icin her calisma bir sonrakini kendisi baslatir.
-      # Bot hemen coktuyse (20 dakikadan kisa surduyse) sonsuz dongu olmasin diye baslatmaz.
+          cp state.json /tmp/state_local.json
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git show origin/main:state.json > /tmp/state_remote.json
+            python merge_state.py /tmp/state_base.json /tmp/state_local.json /tmp/state_remote.json state.json
+            git add state.json
+            if git diff --cached --quiet; then
+              echo "Kaydedilecek yeni durum yok."
+              exit 0
+            fi
+            git commit -m "state guncelle"
+            if git push origin HEAD:main; then
+              echo "Aktiflik durumu kaydedildi."
+              exit 0
+            fi
+            echo "Push cakismasi, guncel durumla tekrar birlestirilecek ($attempt/5)."
+            git reset --hard origin/main
+          done
+          echo "Durum 5 denemede kaydedilemedi." >&2
+          exit 1
       - name: Sonraki calismayi baslat
         if: always()
         env:
@@ -51,5 +68,5 @@ jobs:
           if [ "$ELAPSED" -ge 1200 ]; then
             gh api -X POST "repos/${{ github.repository }}/actions/workflows/yetkili-log.yml/dispatches" -f ref=main
           else
-            echo "Calisma erken bitti, zincir baslatilmadi (yedek zamanlayici devralir)."
+            echo "Calisma erken bitti; zamanlayici yedek olarak devrede."
           fi
