@@ -103,7 +103,6 @@ def main():
         lines.append("")
     lines.append(
         "**Not: Her 30 dakikada bir yetkililer mesaj olarak loglanır. "
-        "7/24 ise aktif yetkililer süreleri ile loglanır. "
         "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
     )
     lines.append("")
