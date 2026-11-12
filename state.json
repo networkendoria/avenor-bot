@@ -1,18 +1,20 @@
 {
   "date": "2026-11-12",
   "minutes": {
-    "SakaryaMan": 101.978,
+    "SakaryaMan": 117.553,
     "Geredeli1871": 20.361,
     "neymar11": 72.509,
     "Noway7": 38.227,
     "TwexSnowyOrg": 7.036
   },
   "last_run": null,
-  "prev_online": [],
-  "last_poll": 1794496031.9654045,
-  "last_post": 1794495489.154613,
+  "prev_online": [
+    "SakaryaMan"
+  ],
+  "last_poll": 1794497745.8165104,
+  "last_post": 1794497323.487142,
   "window_seen": {
-    "TwexSnowyOrg": "Deneme Rehber"
+    "SakaryaMan": "Rehber"
   },
   "history": {},
   "last_monthly": null
