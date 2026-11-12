@@ -97,7 +97,12 @@ def load_state():
 
 
 def save_state(state):
-    json.dump(state, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    # Dosyayi atomik degistir; yarim yazilmis JSON birakma.
+    temp_file = STATE_FILE + ".tmp"
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(state, f, ensure_ascii=False, indent=2)
+        f.write("\\n")
+    os.replace(temp_file, STATE_FILE)
 
 
 def monthly_report(state, now_dt):
