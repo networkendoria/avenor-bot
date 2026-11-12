@@ -101,7 +101,7 @@ def save_state(state):
     temp_file = STATE_FILE + ".tmp"
     with open(temp_file, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
-        f.write("\\n")
+        f.write("\n")
     os.replace(temp_file, STATE_FILE)
 
 
