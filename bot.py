@@ -2,7 +2,7 @@ import json
 import os
 import time
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Europe/Istanbul")
@@ -79,6 +79,8 @@ def load_state():
     st.setdefault("prev_online", [])  # son bakista online olan yetkililer
     st.setdefault("last_post", None)  # son mesajin zamani (epoch saniye)
     st.setdefault("window_seen", {})  # son mesajdan beri gorulen yetkililer (isim -> rutbe)
+    st.setdefault("history", {})  # gecmis gunler: tarih -> {isim: dakika}
+    st.setdefault("last_monthly", None)  # aylik raporun gonderildigi ay (YYYY-AA)
     return st
 
 
@@ -86,8 +88,40 @@ def save_state(state):
     json.dump(state, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 
 
+def monthly_report(state, now_dt):
+    """Ayin 12'sinde (kacirilirsa sonraki ilk bakista) son 1 ayin en aktif 3 yetkilisini yazar."""
+    month_key = now_dt.strftime("%Y-%m")
+    if state["last_monthly"] is None:
+        state["last_monthly"] = month_key  # ilk kurulum: bu ay icin rapor atma
+        return
+    if now_dt.day < 12 or state["last_monthly"] == month_key:
+        return
+    state["last_monthly"] = month_key
+
+    cutoff = (now_dt - timedelta(days=30)).strftime("%Y-%m-%d")
+    today = now_dt.strftime("%Y-%m-%d")
+    totals = {}
+    for day, per_person in state["history"].items():
+        if cutoff <= day < today:
+            for name, minutes in per_person.items():
+                totals[name] = totals.get(name, 0) + minutes
+    # Tum rutbeler dahil (rehber, deneme rehber vs.), sadece yetkili listesindekiler
+    ranked = sorted(
+        ((n, m) for n, m in totals.items() if n.lower() in STAFF and m > 0),
+        key=lambda x: -x[1],
+    )[:3]
+    if not ranked:
+        return
+    medals = ["🥇", "🥈", "🥉"]
+    lines = ["📊 **AYIN EN AKTİF 3 YETKİLİSİ**", "", "Son 1 ayda en çok aktif olan yetkililer:", ""]
+    for i, (name, minutes) in enumerate(ranked):
+        real, rank = STAFF[name.lower()]
+        lines.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
+    send("\n".join(lines))
+
+
 def check_new_day(state, now_dt):
-    """Gun degistiyse dunun birincisini tebrik et ve sayaci sifirla."""
+    """Gun degistiyse dunun birincisini tebrik et, gunu gecmise kaydet ve sayaci sifirla."""
     today = now_dt.strftime("%Y-%m-%d")
     if state["date"] == today:
         return
@@ -99,8 +133,14 @@ def check_new_day(state, now_dt):
             f"Tebrikler **{top}**! Dün toplam **{fmt_time(totals[top])}** "
             f"aktif oldun. Emeğin için teşekkürler! 🎉"
         )
+        if state["date"]:
+            state["history"][state["date"]] = dict(totals)
+    # 45 günden eski kayıtları temizle
+    old = (now_dt - timedelta(days=45)).strftime("%Y-%m-%d")
+    state["history"] = {d: v for d, v in state["history"].items() if d >= old}
     state["date"] = today
     state["minutes"] = {}
+    monthly_report(state, now_dt)
 
 
 def poll_once(state, players, now_ts):
