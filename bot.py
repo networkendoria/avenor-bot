@@ -198,76 +198,64 @@ def poll_once(state, players, now_ts):
 
 
 def build_message(state, online_staff, seen=None):
-    """online_staff: su an online olanlar. seen: son mesajdan beri gorulen tum yetkililer."""
+    """Gunluk aktiflik listesi: tek alanda, aktiflik suresine gore sirali."""
     now_names = {name for name, _ in online_staff}
-    entries = dict(seen or {})
-    for name, rank in online_staff:
-        entries[name] = rank
-    # En cok aktif olan yetkili en ustte; esitlikte rutbe sirasi kullanilir.
-    rows = sorted(
-        entries.items(),
-        key=lambda x: (
-            -state["minutes"].get(x[0], 0),
-            RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
-            x[0].lower(),
-        ),
-    )
-    fields = []
-    if rows:
-        if len(now_names) == len(rows):
-            desc = f"**{len(rows)} Yetkili çevrimiçi.**"
-        else:
-            desc = (
-                f"**Son {int(POST_MINUTES)} dakikada {len(rows)} yetkili aktifti, "
-                f"{len(now_names)} yetkili şu an çevrimiçi.**"
-            )
-        for name, rank in rows:
-            left = "" if name in now_names else " *(çıkış yaptı)*"
-            fields.append(
-                {
-                    "name": f"🟢 {name} × {rank}" if not left else f"⚪ {name} × {rank}",
-                    "value": f"⏱️ Bugün **{fmt_time(state['minutes'].get(name, 0))}** toplam aktiflik{left}",
-                    "inline": False,
-                }
-            )
-    else:
-        desc = "**Şu an çevrimiçi yetkili yok.**"
+    seen_names = set(seen or {})
+    # Bugun aktifligi kaydedilenler + son pencerede gorulenler + su an online olanlar
+    names = set(state["minutes"]) | seen_names | now_names
+    entries = []
+    for name in names:
+        key = name.lower()
+        if key not in STAFF:
+            continue
+        real_name, rank = STAFF[key]
+        entries.append((real_name, rank, state["minutes"].get(real_name, 0)))
 
-    # Bugun girip cikmis (yukarida listelenmeyen) yetkililerin gunluk aktifligi
-    listed = {name for name, _ in rows}
-    earlier = [
-        (STAFF[n.lower()][0], STAFF[n.lower()][1])
-        for n in state["minutes"]
-        if n not in listed and n.lower() in STAFF
-    ]
-    earlier.sort(
-        key=lambda x: (
-            -state["minutes"].get(x[0], 0),
-            RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
-            x[0].lower(),
+    entries.sort(
+        key=lambda item: (
+            -item[2],
+            RANK_ORDER.index(item[1]) if item[1] in RANK_ORDER else 999,
+            item[0].lower(),
         )
     )
-    if earlier:
-        lines = [
-            f"**{name}** × {rank} — {fmt_time(state['minutes'].get(name, 0))}"
-            for name, rank in earlier
-        ]
-        fields.append(
-            {"name": "📋 Bugün daha önce aktif olanlar", "value": "\n".join(lines), "inline": False}
-        )
+
+    online_count = len(now_names)
+    desc = (
+        f"**{online_count} yetkili şu an çevrimiçi.**\n"
+        f"Bugün aktif olan {len(entries)} yetkili, toplam aktiflik süresine göre sıralandı."
+    )
+
+    if entries:
+        lines = []
+        for index, (name, rank, minutes) in enumerate(entries, start=1):
+            status = "🟢" if name in now_names else "⚪"
+            lines.append(
+                f"**{index}.** {status} **{name}** · {rank}\n"
+                f"　　 ⏱️ {fmt_time(minutes)}"
+            )
+        fields = [{
+            "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
+            "value": "\n".join(lines),
+            "inline": False,
+        }]
+    else:
+        fields = [{
+            "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
+            "value": "Bugün henüz aktif yetkili kaydı bulunmuyor.",
+            "inline": False,
+        }]
 
     return {
-        "title": "👥 AVENOR MC AKTİF YETKİLİLER",
+        "title": "👥 AVENOR MC · YETKİLİ AKTİFLİĞİ",
         "description": desc,
         "fields": fields,
         "footer": {
             "text": (
-                f"AvenorMC · Her {int(POST_MINUTES)} dakikada bir loglanır · "
-                "Gün sonunda en aktif yetkili tebrik edilir"
+                f"AvenorMC · {int(POST_MINUTES)} dakikada bir güncellenir"
+                " · 🟢 Çevrimiçi  ⚪ Şu an çevrimdışı"
             )
         },
     }
-
 
 def maybe_post(state, online_staff, now_ts):
     """Son mesajin uzerinden POST_MINUTES gectiyse mesaj atar. Atildiysa True doner."""
