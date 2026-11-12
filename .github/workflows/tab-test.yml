@@ -15,4 +15,5 @@ jobs:
       - name: Sunucuya gir ve TAB listesini yazdir
         env:
           MC_SERVER: ${{ secrets.MC_SERVER }}
+          MC_BOT_PASSWORD: ${{ secrets.MC_BOT_PASSWORD }}
         run: node tab_test.js

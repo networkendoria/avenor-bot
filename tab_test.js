@@ -3,6 +3,7 @@ const mineflayer = require("mineflayer");
 
 const host = process.env.MC_SERVER;
 const username = process.env.MC_USER || "AvenorLog";
+const password = process.env.MC_BOT_PASSWORD || "";
 if (!host) {
   console.error("MC_SERVER yok");
   process.exit(1);
@@ -19,6 +20,21 @@ const limit = setTimeout(() => {
   console.log("ZAMAN ASIMI: sunucuya girilemedi veya spawn olmadi.");
   process.exit(2);
 }, 90000);
+
+// Sunucuda kayit/giris sistemi (AuthMe gibi) varsa otomatik giris yapar.
+let lastAuth = 0;
+bot.on("messagestr", (msg) => {
+  if (!password) return;
+  const m = msg.toLowerCase();
+  if (Date.now() - lastAuth < 3000) return;
+  if (m.includes("/register") || m.includes("/kayit") || m.includes("/kayıt")) {
+    lastAuth = Date.now();
+    bot.chat(`/register ${password} ${password}`);
+  } else if (m.includes("/login") || m.includes("/giris") || m.includes("/giriş")) {
+    lastAuth = Date.now();
+    bot.chat(`/login ${password}`);
+  }
+});
 
 bot.once("login", () => console.log("Giris yapildi, spawn bekleniyor..."));
 
