@@ -24,6 +24,9 @@ MAX_GAP_MIN = 5.0  # iki bakis arasi bundan uzunsa en fazla bu kadar sayilir
 CFG = json.load(open("staff.json", encoding="utf-8"))
 STAFF = {k.lower(): (k, v) for k, v in CFG["staff"].items()}
 RANK_ORDER = CFG["rank_order"]  # en ustteki rutbe en uste yazilir
+START_DATE = CFG.get("start_date", "")  # bu tarihe (00:00) kadar hicbir sey sayilmaz/atilmaz
+REPORT_DAY = 13  # aylik donem: her ayin 13'unden sonraki ayin 13'une
+MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 
 
 def http_json(url):
@@ -122,20 +125,24 @@ def save_state(state):
 
 
 def monthly_report(state, now_dt):
-    """Ayin 12'sinde (kacirilirsa sonraki ilk bakista) son 1 ayin en aktif 3 yetkilisini yazar."""
+    """Her ayin 13'unde (kacirilirsa sonraki ilk bakista) gecen ayin 13'unden bu ayin 12'sine kadar
+    en aktif 3 yetkiliyi yazar."""
     month_key = now_dt.strftime("%Y-%m")
     if state["last_monthly"] is None:
         state["last_monthly"] = month_key  # ilk kurulum: bu ay icin rapor atma
         return
-    if now_dt.day < 12 or state["last_monthly"] == month_key:
+    if now_dt.day < REPORT_DAY or state["last_monthly"] == month_key:
         return
     state["last_monthly"] = month_key
 
-    cutoff = (now_dt - timedelta(days=30)).strftime("%Y-%m-%d")
-    today = now_dt.strftime("%Y-%m-%d")
+    end = datetime(now_dt.year, now_dt.month, REPORT_DAY, tzinfo=TZ)  # bu ayin 13'u (dahil degil)
+    py, pm = (end.year - 1, 12) if end.month == 1 else (end.year, end.month - 1)
+    start = datetime(py, pm, REPORT_DAY, tzinfo=TZ)  # gecen ayin 13'u (dahil)
+    last_day = end - timedelta(days=1)
+    start_s, end_s = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
     totals = {}
     for day, per_person in state["history"].items():
-        if cutoff <= day < today:
+        if start_s <= day < end_s:
             for name, minutes in per_person.items():
                 totals[name] = totals.get(name, 0) + minutes
     # Rutbe gruplari ayri listelenir (staff.json -> monthly_groups). Her grubun ilk 3'u yazilir.
@@ -162,7 +169,10 @@ def monthly_report(state, now_dt):
         send(
             {
                 "title": "📊 AYIN EN AKTİF YETKİLİLERİ",
-                "description": "Son 1 ayda en çok aktif olanlar:",
+                "description": (
+                    f"**{start.day} {MONTHS[start.month - 1]} – {last_day.day} {MONTHS[last_day.month - 1]}** "
+                    "arası en çok aktif olanlar:"
+                ),
                 "fields": fields,
                 "footer": {"text": "AvenorMC · Aylık yetkili aktifliği"},
             }
@@ -296,6 +306,14 @@ def main():
 
     while True:
         now_ts = time.time()
+        today_s = datetime.fromtimestamp(now_ts, TZ).strftime("%Y-%m-%d")
+        if START_DATE and today_s < START_DATE:
+            # Baslangic tarihi (00:00) gelmeden hicbir sey sayilmaz ve mesaj atilmaz
+            print(f"Baslangic bekleniyor: {START_DATE} 00:00")
+            if time.time() + POLL_SECONDS - start > RUN_MINUTES * 60:
+                break
+            time.sleep(POLL_SECONDS)
+            continue
         players = get_online_players()
         if players is not None:
             check_new_day(state, datetime.fromtimestamp(now_ts, TZ))

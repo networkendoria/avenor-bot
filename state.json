@@ -1,23 +1,10 @@
 {
-  "date": "2026-11-12",
-  "minutes": {
-    "SakaryaMan": 297.527,
-    "Geredeli1871": 20.361,
-    "neymar11": 73.518,
-    "Noway7": 38.227,
-    "TwexSnowyOrg": 20.385,
-    "GalacticOtter": 132.104,
-    "TahaGokTug": 25.441
-  },
-  "last_run": null,
-  "prev_online": [
-    "SakaryaMan"
-  ],
-  "last_poll": 1794514148.3648736,
-  "last_post": 1794513723.0648723,
-  "window_seen": {
-    "SakaryaMan": "Rehber"
-  },
+  "date": "",
+  "minutes": {},
+  "last_poll": null,
+  "prev_online": [],
+  "last_post": null,
+  "window_seen": {},
   "history": {},
   "last_monthly": null
 }
