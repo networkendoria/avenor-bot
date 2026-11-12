@@ -18,6 +18,7 @@ PLAYERS_URL = os.environ.get(
 STATE_FILE = os.environ.get("STATE_FILE", "state.json")
 POLL_SECONDS = int(os.environ.get("POLL_SECONDS", "60"))  # kac saniyede bir siteye bakilir
 RUN_MINUTES = float(os.environ.get("RUN_MINUTES", "0"))  # bir calismanin suresi (0 = tek bakis)
+POST_MINUTES = float(os.environ.get("POST_MINUTES", "10"))  # kac dakikada bir Discord'a mesaj atilir
 MAX_GAP_MIN = 5.0  # iki bakis arasi bundan uzunsa en fazla bu kadar sayilir
 
 CFG = json.load(open("staff.json", encoding="utf-8"))
@@ -76,6 +77,8 @@ def load_state():
     st.setdefault("minutes", {})
     st.setdefault("last_poll", None)  # son basarili bakisin zamani (epoch saniye)
     st.setdefault("prev_online", [])  # son bakista online olan yetkililer
+    st.setdefault("last_post", None)  # son mesajin zamani (epoch saniye)
+    st.setdefault("window_seen", {})  # son mesajdan beri gorulen yetkililer (isim -> rutbe)
     return st
 
 
@@ -137,7 +140,7 @@ def build_message(state, online_staff, seen=None):
             lines.append(f"{len(rows)} Yetkili çevrimiçi.")
         else:
             lines.append(
-                f"Son 30 dakikada {len(rows)} yetkili aktifti, {len(now_names)} yetkili şu an çevrimiçi."
+                f"Son {int(POST_MINUTES)} dakikada {len(rows)} yetkili aktifti, {len(now_names)} yetkili şu an çevrimiçi."
             )
         lines.append("")
         for name, rank in rows:
@@ -164,17 +167,26 @@ def build_message(state, online_staff, seen=None):
             lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
             lines.append("")
     lines.append(
-        "**Not: Her 30 dakikada bir yetkililer mesaj olarak loglanır. "
+        f"**Not: Her {int(POST_MINUTES)} dakikada bir yetkililer mesaj olarak loglanır. "
         "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
     )
     return "\n".join(lines)
 
 
+def maybe_post(state, online_staff, now_ts):
+    """Son mesajin uzerinden POST_MINUTES gectiyse mesaj atar. Atildiysa True doner."""
+    last = state["last_post"]
+    if last is not None and (now_ts - last) < (POST_MINUTES - 0.5) * 60:
+        return False
+    send(build_message(state, online_staff, state["window_seen"]))
+    state["window_seen"] = {}
+    state["last_post"] = now_ts
+    return True
+
+
 def main():
     start = time.time()
     state = load_state()
-    online_staff = None  # hic basarili bakis olmazsa mesaj atilmaz
-    seen = {}  # bu calisma boyunca gorulen tum yetkililer
 
     while True:
         now_ts = time.time()
@@ -182,19 +194,15 @@ def main():
         if players is not None:
             check_new_day(state, datetime.fromtimestamp(now_ts, TZ))
             online_staff = poll_once(state, players, now_ts)
-            seen.update({name: rank for name, rank in online_staff})
-            save_state(state)
+            state["window_seen"].update({name: rank for name, rank in online_staff})
             print(f"Bakis: {len(players)} oyuncu, {len(online_staff)} yetkili online.")
+            if maybe_post(state, online_staff, now_ts):
+                print("Mesaj gonderildi.")
+            save_state(state)
         # Sonraki bakis calisma suresini asacaksa dongu biter
         if time.time() + POLL_SECONDS - start > RUN_MINUTES * 60:
             break
         time.sleep(POLL_SECONDS)
-
-    if online_staff is None:
-        print("Hic basarili bakis olmadi, mesaj atilmadi.")
-        return
-    send(build_message(state, online_staff, seen))
-    save_state(state)
 
 
 if __name__ == "__main__":
