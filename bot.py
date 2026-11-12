@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -55,10 +56,37 @@ def get_online_players():
 
 
 EMBED_COLOR = 0xF1C40F  # sari serit
+MEDALS = ["🥇", "🥈", "🥉"]
+DAYS = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
+
+
+def date_tr(date_str):
+    """'2026-11-13' -> '13 Kasım 2026 Cuma'"""
+    d = datetime.strptime(date_str, "%Y-%m-%d")
+    return f"{d.day} {MONTHS[d.month - 1]} {d.year} {DAYS[d.weekday()]}"
+
+
+def chunk_fields(name, entries, limit=1000):
+    """Kayitlari Discord'un alan sinirini (1024 karakter) asmadan parcalara boler.
+    Her kayit arasinda bir bos satir birakir."""
+    chunks, cur, size = [], [], 0
+    for entry in entries:
+        add = len(entry) + 2
+        if cur and size + add > limit:
+            chunks.append("\n\n".join(cur))
+            cur, size = [], 0
+        cur.append(entry)
+        size += add
+    if cur:
+        chunks.append("\n\n".join(cur))
+    return [
+        {"name": name if i == 0 else "\u200b", "value": text, "inline": False}
+        for i, text in enumerate(chunks)
+    ]
 
 
 def send(embed):
-    """Discord'a kenari renkli kutu (embed) olarak mesaj atar."""
+    """Discord'a kenari renkli kutu (embed) olarak mesaj atar. Hata olursa botu cokertmez."""
     embed = dict(embed)
     embed["color"] = EMBED_COLOR
     embed["timestamp"] = datetime.now(TZ).astimezone(ZoneInfo("UTC")).strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -67,18 +95,37 @@ def send(embed):
         print("BASLIK:", embed.get("title"))
         print("ACIKLAMA:", embed.get("description", ""))
         for f in embed.get("fields", []):
-            print(f"  [ALAN] {f['name']}\n         {f['value']}".replace("\n", "\n         ", 0))
+            print("[ALAN]", f["name"])
+            print(f["value"])
         if embed.get("footer"):
             print("ALT YAZI:", embed["footer"]["text"])
         print("--------------------------------------")
-        return
+        return True
     body = json.dumps({"embeds": [embed], "allowed_mentions": {"parse": []}}).encode()
-    req = urllib.request.Request(
-        WEBHOOK,
-        data=body,
-        headers={"Content-Type": "application/json", "User-Agent": "avenor-bot/1.0"},
-    )
-    urllib.request.urlopen(req, timeout=20).read()
+    for attempt in range(3):
+        req = urllib.request.Request(
+            WEBHOOK,
+            data=body,
+            headers={"Content-Type": "application/json", "User-Agent": "avenor-bot/1.0"},
+        )
+        try:
+            urllib.request.urlopen(req, timeout=20).read()
+            return True
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:300]
+            print(f"Discord hatasi {e.code}: {detail}")
+            if e.code == 429:  # cok hizli: bekleyip tekrar dene
+                try:
+                    wait = float(json.loads(detail).get("retry_after", 2))
+                except Exception:
+                    wait = 2.0
+                time.sleep(min(wait, 10))
+                continue
+            return False
+        except Exception as e:
+            print(f"Discord'a gonderilemedi: {e}")
+            time.sleep(2)
+    return False
 
 
 def fmt_time(minutes):
@@ -164,14 +211,14 @@ def monthly_report(state, now_dt):
         for i, (name, minutes) in enumerate(ranked):
             real, rank = STAFF[name.lower()]
             rows.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
-        fields.append({"name": title, "value": "\n".join(rows), "inline": False})
+        fields.extend(chunk_fields(title, rows))
     if fields:
         send(
             {
                 "title": "📊 AYIN EN AKTİF YETKİLİLERİ",
                 "description": (
                     f"**{start.day} {MONTHS[start.month - 1]} – {last_day.day} {MONTHS[last_day.month - 1]}** "
-                    "arası en çok aktif olanlar:"
+                    "arası en çok aktif olanlar:\n\u200b"
                 ),
                 "fields": fields,
                 "footer": {"text": "AvenorMC · Aylık yetkili aktifliği"},
@@ -186,14 +233,29 @@ def check_new_day(state, now_dt):
         return
     totals = state["minutes"]
     if totals:
-        top = max(totals, key=totals.get)
+        ranked = sorted(totals.items(), key=lambda x: -x[1])
+        top, top_min = ranked[0]
+        top_rank = STAFF[top.lower()][1] if top.lower() in STAFF else ""
+        day_txt = date_tr(state["date"]) if state["date"] else "Dün"
+        desc = (
+            f"📅 **{day_txt}**\n\n"
+            f"🥇 **{top}**" + (f" · {top_rank}" if top_rank else "") + "\n"
+            f"⏱️ **{fmt_time(top_min)}**\n\n"
+            f"Tebrikler **{top}**! Dün toplam **{fmt_time(top_min)}** "
+            f"aktif oldun. Emeğin için teşekkürler! 🎉\n\u200b"
+        )
+        fields = []
+        others = []
+        for i, (name, minutes) in enumerate(ranked[1:3], start=1):
+            rank = STAFF[name.lower()][1] if name.lower() in STAFF else ""
+            others.append(f"{MEDALS[i]} **{name}**" + (f" · {rank}" if rank else "") + f"\n⠀⠀⏱️ {fmt_time(minutes)}")
+        if others:
+            fields = chunk_fields("Dünün diğer zirvedekileri", others)
         send(
             {
                 "title": "🏆 GÜNÜN EN AKTİF YETKİLİSİ",
-                "description": (
-                    f"Tebrikler **{top}**! Dün toplam **{fmt_time(totals[top])}** "
-                    f"aktif oldun. Emeğin için teşekkürler! 🎉"
-                ),
+                "description": desc,
+                "fields": fields,
                 "footer": {"text": "AvenorMC · Günlük yetkili aktifliği"},
             }
         )
@@ -229,7 +291,7 @@ def poll_once(state, players, now_ts):
 
 
 def build_message(state, online_staff, seen=None):
-    """Gunluk aktiflik listesi: tek alanda, aktiflik suresine gore sirali."""
+    """Gunluk aktiflik listesi: aktiflik suresine gore sirali, kayitlar arasi bosluklu."""
     now_names = {name for name, _ in online_staff}
     seen_names = set(seen or {})
     # Bugun aktifligi kaydedilenler + son pencerede gorulenler + su an online olanlar
@@ -251,31 +313,29 @@ def build_message(state, online_staff, seen=None):
     )
 
     online_count = len(now_names)
+    offline_count = len(entries) - len([e for e in entries if e[0] in now_names])
+    today = datetime.now(TZ).strftime("%Y-%m-%d")
     desc = (
-        f"**{online_count} yetkili şu an çevrimiçi.**\n"
-        f"Bugün aktif olan {len(entries)} yetkili, toplam aktiflik süresine göre sıralandı."
+        f"🟢 **{online_count}** çevrimiçi　·　⚪ **{offline_count}** çevrimdışı\n"
+        f"📅 {date_tr(today)}\n\u200b"
     )
 
     if entries:
         lines = []
         for index, (name, rank, minutes) in enumerate(entries, start=1):
+            pos = MEDALS[index - 1] if index <= 3 and minutes >= 1 else f"**{index}.**"
             status = "🟢" if name in now_names else "⚪"
             lines.append(
-                f"**{index}.** {status} **{name}** · {rank}\n"
-                f"　　 ⏱️ {fmt_time(minutes)}"
+                f"{pos} {status} **{name}** · {rank}\n"
+                f"⠀⠀⏱️ {fmt_time(minutes)}"
             )
-        fields = [{
-            "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
-            "value": "\n\n".join(lines),
-            "inline": False,
-        }]
+        fields = chunk_fields("📊 BUGÜNÜN AKTİFLİK SIRALAMASI", lines)
     else:
         fields = [{
             "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
             "value": "Bugün henüz aktif yetkili kaydı bulunmuyor.",
             "inline": False,
         }]
-
 
     return {
         "title": "👥 AVENOR MC · YETKİLİ AKTİFLİĞİ",
@@ -284,10 +344,11 @@ def build_message(state, online_staff, seen=None):
         "footer": {
             "text": (
                 f"AvenorMC · {int(POST_MINUTES)} dakikada bir güncellenir"
-                " · 🟢 Çevrimiçi  ⚪ Şu an çevrimdışı"
+                " · 🟢 Çevrimiçi  ⚪ Çevrimdışı"
             )
         },
     }
+
 
 def maybe_post(state, online_staff, now_ts):
     """Son mesajin uzerinden POST_MINUTES gectiyse mesaj atar. Atildiysa True doner."""
