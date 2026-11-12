@@ -121,17 +121,28 @@ def poll_once(state, players, now_ts):
     return online_staff
 
 
-def build_message(state, online_staff):
-    online_staff = sorted(
-        online_staff,
+def build_message(state, online_staff, seen=None):
+    """online_staff: su an online olanlar. seen: bu calisma boyunca gorulen tum yetkililer."""
+    now_names = {name for name, _ in online_staff}
+    entries = dict(seen or {})
+    for name, rank in online_staff:
+        entries[name] = rank
+    rows = sorted(
+        entries.items(),
         key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
     )
     lines = ["**AVENOR MC AKTİF YETKİLİLER**", ""]
-    if online_staff:
-        lines.append(f"{len(online_staff)} Yetkili çevrimiçi.")
+    if rows:
+        if len(now_names) == len(rows):
+            lines.append(f"{len(rows)} Yetkili çevrimiçi.")
+        else:
+            lines.append(
+                f"Son 30 dakikada {len(rows)} yetkili aktifti, {len(now_names)} yetkili şu an çevrimiçi."
+            )
         lines.append("")
-        for name, rank in online_staff:
-            lines.append(f"- **{name}** × {rank}")
+        for name, rank in rows:
+            left = "" if name in now_names else " *(çıkış yaptı)*"
+            lines.append(f"- **{name}** × {rank}{left}")
             lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
             lines.append("")
     else:
@@ -148,6 +159,7 @@ def main():
     start = time.time()
     state = load_state()
     online_staff = None  # hic basarili bakis olmazsa mesaj atilmaz
+    seen = {}  # bu calisma boyunca gorulen tum yetkililer
 
     while True:
         now_ts = time.time()
@@ -155,6 +167,7 @@ def main():
         if players is not None:
             check_new_day(state, datetime.fromtimestamp(now_ts, TZ))
             online_staff = poll_once(state, players, now_ts)
+            seen.update({name: rank for name, rank in online_staff})
             save_state(state)
             print(f"Bakis: {len(players)} oyuncu, {len(online_staff)} yetkili online.")
         # Sonraki bakis calisma suresini asacaksa dongu biter
@@ -165,7 +178,7 @@ def main():
     if online_staff is None:
         print("Hic basarili bakis olmadi, mesaj atilmadi.")
         return
-    send(build_message(state, online_staff))
+    send(build_message(state, online_staff, seen))
     save_state(state)
 
 
