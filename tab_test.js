@@ -49,6 +49,17 @@ bot.once("spawn", () => {
   }, 15000);
 });
 
-bot.on("kicked", (r) => console.log("ATILDI: " + r));
+bot.on("kicked", (r) => {
+  let text = "";
+  try {
+    text = typeof r === "string" ? r : JSON.stringify(r);
+    const m = require("prismarine-chat")(bot.registry);
+    text += " || DUZ METIN: " + new m(typeof r === "string" ? JSON.parse(r) : r).toString();
+  } catch (e) {}
+  console.log("ATILDI: " + text);
+});
 bot.on("error", (e) => console.log("HATA: " + e.message));
-bot.on("end", (r) => console.log("Baglanti bitti: " + r));
+bot.on("end", (r) => {
+  console.log("Baglanti bitti: " + r);
+  setTimeout(() => process.exit(3), 500);
+});
