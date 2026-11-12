@@ -87,6 +87,11 @@ def load_state():
         st = {}
     st.setdefault("date", "")
     st.setdefault("minutes", {})
+    st.setdefault("last_poll", None)  # son basarili bakisin zamani (epoch saniye)
+    st.setdefault("prev_online", [])  # son bakista online olan yetkililer
+    st.setdefault("last_post", None)  # son mesajin zamani (epoch saniye)
+    st.setdefault("window_seen", {})  # son mesajdan beri gorulen yetkililer (isim -> rutbe)
+    st.setdefault("history", {})  # gecmis gunler: tarih -> {isim: dakika}
     st.setdefault("total_minutes", None)  # botun takip etmeye basladigindan beri biriken sure
     if st["total_minutes"] is None:
         # Eski kayitlardan devral; kaydedilmemis sure geriye donuk hesaplanamaz.
@@ -97,11 +102,6 @@ def load_state():
         for name, minutes in st["minutes"].items():
             totals[name] = totals.get(name, 0) + minutes
         st["total_minutes"] = totals
-    st.setdefault("last_poll", None)  # son basarili bakisin zamani (epoch saniye)
-    st.setdefault("prev_online", [])  # son bakista online olan yetkililer
-    st.setdefault("last_post", None)  # son mesajin zamani (epoch saniye)
-    st.setdefault("window_seen", {})  # son mesajdan beri gorulen yetkililer (isim -> rutbe)
-    st.setdefault("history", {})  # gecmis gunler: tarih -> {isim: dakika}
     st.setdefault("last_monthly", None)  # aylik raporun gonderildigi ay (YYYY-AA)
     return st
 
@@ -246,7 +246,7 @@ def build_message(state, online_staff, seen=None):
             )
         fields = [{
             "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
-            "value": "\\n\\n".join(lines),
+            "value": "\n\n".join(lines),
             "inline": False,
         }]
     else:
@@ -276,7 +276,7 @@ def build_message(state, online_staff, seen=None):
     ]
     fields.append({
         "name": "🏅 BOT BAŞLADIĞINDAN BERİ TOPLAM AKTİFLİK",
-        "value": "\\n\\n".join(lifetime_lines) if lifetime_lines else "Henüz kayıtlı toplam aktiflik yok.",
+        "value": "\n\n".join(lifetime_lines) if lifetime_lines else "Henüz kayıtlı toplam aktiflik yok.",
         "inline": False,
     })
 
