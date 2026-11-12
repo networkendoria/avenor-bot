@@ -2,12 +2,16 @@
   "date": "2026-11-13",
   "minutes": {
     "GalacticOtter": 2.026,
-    "Noway7": 7.072
+    "Noway7": 10.614
   },
-  "last_poll": 1794525770.357342,
-  "prev_online": [],
-  "last_post": 1794525770.357342,
-  "window_seen": {},
+  "last_poll": 1794527421.8334112,
+  "prev_online": [
+    "Noway7"
+  ],
+  "last_post": 1794526996.360065,
+  "window_seen": {
+    "Noway7": "Deneme Rehber"
+  },
   "history": {},
   "last_monthly": "2026-11"
 }
