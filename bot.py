@@ -6,8 +6,14 @@ from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Europe/Istanbul")
 INTERVAL_MIN = int(os.environ.get("INTERVAL_MIN", "30"))
-WEBHOOK = os.environ["DISCORD_WEBHOOK"]
-SERVER_IP = os.environ["MC_SERVER"]  # ornek: oyna.avenor.com
+DRY_RUN = os.environ.get("DRY_RUN") == "1"  # 1 ise Discord'a gondermez, ekrana yazar
+WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "")
+if not WEBHOOK and not DRY_RUN:
+    raise SystemExit("DISCORD_WEBHOOK secret'i yok")
+# Sunucunun herkese acik canli haritasi (squaremap) online oyuncu listesini verir.
+PLAYERS_URL = os.environ.get(
+    "PLAYERS_URL", "https://map.avenormc.com/tiles/players.json"
+)
 
 CFG = json.load(open("staff.json", encoding="utf-8"))
 STAFF = {k.lower(): (k, v) for k, v in CFG["staff"].items()}
@@ -21,14 +27,20 @@ def http_json(url):
 
 
 def get_online_players():
-    data = http_json(f"https://api.mcsrvstat.us/3/{SERVER_IP}")
-    if not data.get("online"):
-        return None  # sunucu kapali
-    players = data.get("players", {}).get("list", []) or []
-    return [p["name"] for p in players]
+    try:
+        data = http_json(PLAYERS_URL)
+    except Exception as e:
+        print(f"Oyuncu listesi alinamadi: {e}")
+        return None  # harita/sunucu kapali: bu tur sayim yapma
+    return [p["name"].lstrip(".") for p in data.get("players", []) if p.get("name")]
 
 
 def send(content):
+    if DRY_RUN:
+        print("----- DISCORD MESAJI -----")
+        print(content)
+        print("--------------------------")
+        return
     body = json.dumps(
         {"content": content, "allowed_mentions": {"parse": ["everyone"]}}
     ).encode()
@@ -75,7 +87,7 @@ def main():
 
     players = get_online_players()
     if players is None:
-        print("Sunucu kapali, sayim yapilmadi.")
+        print("Liste alinamadi, sayim yapilmadi.")
         json.dump(state, open("state.json", "w", encoding="utf-8"), ensure_ascii=False)
         return
 
