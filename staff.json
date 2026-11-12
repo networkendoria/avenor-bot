@@ -1,10 +1,13 @@
 {
-  "rank_order": ["Kurucu", "Geliştirici", "Moderatör", "Rehber", "Deneme Rehber"],
+  "rank_order": ["Geliştirici", "Premium ⭐⭐⭐", "Moderatör", "Rehber", "Deneme Rehber"],
   "staff": {
     "Zyven": "Geliştirici",
-    "Bywaffle": "Kurucu",
+    "ByWaffle": "Premium ⭐⭐⭐",
     "neymar11": "Moderatör",
-    "ornek": "Deneme Rehber",
-    "ornek2": "Rehber"
+    "Geredeli1871": "Moderatör",
+    "SakaryaMan": "Rehber",
+    "Noway7": "Deneme Rehber",
+    "TwexSnowyOrg": "Deneme Rehber",
+    "Galacticotter": "Deneme Rehber"
   }
 }
