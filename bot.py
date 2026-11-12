@@ -148,6 +148,21 @@ def build_message(state, online_staff, seen=None):
     else:
         lines.append("Şu an çevrimiçi yetkili yok.")
         lines.append("")
+    # Bugun girip cikmis (yukarida listelenmeyen) yetkililerin gunluk aktifligi
+    listed = {name for name, _ in rows}
+    earlier = [
+        (STAFF[n.lower()][0], STAFF[n.lower()][1])
+        for n in state["minutes"]
+        if n not in listed and n.lower() in STAFF
+    ]
+    earlier.sort(key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999)
+    if earlier:
+        lines.append("**Bugün daha önce aktif olanlar:**")
+        lines.append("")
+        for name, rank in earlier:
+            lines.append(f"- **{name}** × {rank}")
+            lines.append(f"{{ Bugün {fmt_time(state['minutes'].get(name, 0))} toplam aktiflik }}")
+            lines.append("")
     lines.append(
         "**Not: Her 30 dakikada bir yetkililer mesaj olarak loglanır. "
         "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
