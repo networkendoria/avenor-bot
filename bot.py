@@ -235,7 +235,7 @@ def build_message(state, online_staff, seen=None):
             )
         fields = [{
             "name": "📊 BUGÜNÜN AKTİFLİK SIRALAMASI",
-            "value": "\n".join(lines),
+            "value": "\n\n".join(lines),
             "inline": False,
         }]
     else:
