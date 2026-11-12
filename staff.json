@@ -1,5 +1,11 @@
 {
-  "rank_order": ["Geliştirici", "Premium ⭐⭐⭐", "Moderatör", "Rehber", "Deneme Rehber"],
+  "rank_order": [
+    "Geliştirici",
+    "Premium ⭐⭐⭐",
+    "Moderatör",
+    "Rehber",
+    "Deneme Rehber"
+  ],
   "staff": {
     "Zyven": "Geliştirici",
     "ByWaffle": "Premium ⭐⭐⭐",
@@ -9,5 +15,16 @@
     "Noway7": "Deneme Rehber",
     "TwexSnowyOrg": "Deneme Rehber",
     "Galacticotter": "Deneme Rehber"
+  },
+  "monthly_groups": {
+    "Yönetim (Mod ve Üstü)": [
+      "Geliştirici",
+      "Premium ⭐⭐⭐",
+      "Moderatör"
+    ],
+    "Rehberler": [
+      "Rehber",
+      "Deneme Rehber"
+    ]
   }
 }

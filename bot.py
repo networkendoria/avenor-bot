@@ -105,19 +105,29 @@ def monthly_report(state, now_dt):
         if cutoff <= day < today:
             for name, minutes in per_person.items():
                 totals[name] = totals.get(name, 0) + minutes
-    # Tum rutbeler dahil (rehber, deneme rehber vs.), sadece yetkili listesindekiler
-    ranked = sorted(
-        ((n, m) for n, m in totals.items() if n.lower() in STAFF and m > 0),
-        key=lambda x: -x[1],
-    )[:3]
-    if not ranked:
-        return
+    # Rutbe gruplari ayri listelenir (staff.json -> monthly_groups). Her grubun ilk 3'u yazilir.
+    groups = CFG.get("monthly_groups") or {"Yetkililer": RANK_ORDER}
     medals = ["🥇", "🥈", "🥉"]
-    lines = ["📊 **AYIN EN AKTİF 3 YETKİLİSİ**", "", "Son 1 ayda en çok aktif olan yetkililer:", ""]
-    for i, (name, minutes) in enumerate(ranked):
-        real, rank = STAFF[name.lower()]
-        lines.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
-    send("\n".join(lines))
+    lines = ["📊 **AYIN EN AKTİF YETKİLİLERİ**", "", "Son 1 ayda en çok aktif olanlar:"]
+    any_rows = False
+    for title, ranks in groups.items():
+        ranked = sorted(
+            (
+                (n, m)
+                for n, m in totals.items()
+                if n.lower() in STAFF and STAFF[n.lower()][1] in ranks and m > 0
+            ),
+            key=lambda x: -x[1],
+        )[:3]
+        if not ranked:
+            continue
+        any_rows = True
+        lines += ["", f"**{title}**"]
+        for i, (name, minutes) in enumerate(ranked):
+            real, rank = STAFF[name.lower()]
+            lines.append(f"{medals[i]} **{i + 1}.** **{real}** × {rank} — {fmt_time(minutes)}")
+    if any_rows:
+        send("\n".join(lines))
 
 
 def check_new_day(state, now_dt):
