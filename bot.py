@@ -117,8 +117,9 @@ def main():
         "**Not: Her 30 dakikada bir yetkililer mesaj olarak loglanır. "
         "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
     )
-    lines.append("")
-    lines.append("@here")
+    if online_staff:
+        lines.append("")
+        lines.append("@here")
 
     send("\n".join(lines))
     json.dump(state, open("state.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
