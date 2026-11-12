@@ -1,19 +1,21 @@
 {
   "date": "2026-11-12",
   "minutes": {
-    "SakaryaMan": 98.274,
+    "SakaryaMan": 101.978,
     "Geredeli1871": 20.361,
-    "neymar11": 26.409
+    "neymar11": 41.003,
+    "Noway7": 0.505
   },
   "last_run": null,
   "prev_online": [
-    "SakaryaMan"
+    "Noway7",
+    "neymar11"
   ],
-  "last_poll": 1794489365.2789793,
-  "last_post": 1794488822.2720277,
+  "last_poll": 1794491005.9888887,
+  "last_post": 1794490643.5923874,
   "window_seen": {
     "neymar11": "Moderatör",
-    "SakaryaMan": "Rehber"
+    "Noway7": "Deneme Rehber"
   },
   "history": {},
   "last_monthly": null
