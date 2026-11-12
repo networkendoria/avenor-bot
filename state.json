@@ -3,19 +3,14 @@
   "minutes": {
     "SakaryaMan": 101.978,
     "Geredeli1871": 20.361,
-    "neymar11": 62.439,
-    "Noway7": 21.443
+    "neymar11": 72.509,
+    "Noway7": 38.227
   },
   "last_run": null,
-  "prev_online": [
-    "Noway7"
-  ],
-  "last_poll": 1794492684.6320705,
-  "last_post": 1794492442.4919646,
-  "window_seen": {
-    "Noway7": "Deneme Rehber",
-    "neymar11": "Moderatör"
-  },
+  "prev_online": [],
+  "last_poll": 1794494448.4555967,
+  "last_post": 1794494266.4252598,
+  "window_seen": {},
   "history": {},
   "last_monthly": null
 }
