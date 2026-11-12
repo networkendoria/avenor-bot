@@ -35,10 +35,20 @@ def http_json(url):
 def get_online_players():
     try:
         data = http_json(PLAYERS_URL)
+        if not isinstance(data, dict) or not isinstance(data.get("players"), list):
+            print("Oyuncu listesi beklenen Squaremap formatinda degil; sayim atlandi.")
+            return None
+        names = []
+        for player in data["players"]:
+            if not isinstance(player, dict):
+                continue
+            name = player.get("name")
+            if isinstance(name, str) and name.strip():
+                names.append(name.strip().lstrip("."))
+        return names
     except Exception as e:
         print(f"Oyuncu listesi alinamadi: {e}")
-        return None  # site kapali: bu bakista sayim yapma
-    return [p["name"].lstrip(".") for p in data.get("players", []) if p.get("name")]
+        return None  # site kapali/hatali: bu bakista sayim yapma
 
 
 EMBED_COLOR = 0xF1C40F  # sari serit
@@ -81,10 +91,16 @@ def fmt_time(minutes):
 
 
 def load_state():
-    try:
-        st = json.load(open(STATE_FILE, encoding="utf-8"))
-    except Exception:
+    if not os.path.exists(STATE_FILE):
         st = {}
+    else:
+        try:
+            with open(STATE_FILE, encoding="utf-8") as f:
+                st = json.load(f)
+        except (json.JSONDecodeError, OSError) as e:
+            raise SystemExit(f"{STATE_FILE} okunamadi; veri kaybini onlemek icin bot durduruldu: {e}")
+        if not isinstance(st, dict):
+            raise SystemExit(f"{STATE_FILE} gecersiz; JSON nesnesi bekleniyordu.")
     st.setdefault("date", "")
     st.setdefault("minutes", {})
     st.setdefault("last_poll", None)  # son basarili bakisin zamani (epoch saniye)
