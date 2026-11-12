@@ -92,16 +92,6 @@ def load_state():
     st.setdefault("last_post", None)  # son mesajin zamani (epoch saniye)
     st.setdefault("window_seen", {})  # son mesajdan beri gorulen yetkililer (isim -> rutbe)
     st.setdefault("history", {})  # gecmis gunler: tarih -> {isim: dakika}
-    st.setdefault("total_minutes", None)  # botun takip etmeye basladigindan beri biriken sure
-    if st["total_minutes"] is None:
-        # Eski kayitlardan devral; kaydedilmemis sure geriye donuk hesaplanamaz.
-        totals = {}
-        for per_person in st["history"].values():
-            for name, minutes in per_person.items():
-                totals[name] = totals.get(name, 0) + minutes
-        for name, minutes in st["minutes"].items():
-            totals[name] = totals.get(name, 0) + minutes
-        st["total_minutes"] = totals
     st.setdefault("last_monthly", None)  # aylik raporun gonderildigi ay (YYYY-AA)
     return st
 
@@ -201,7 +191,6 @@ def poll_once(state, players, now_ts):
     for name in now_names | prev_names:
         credit = elapsed if (name in now_names and name in prev_names) else elapsed / 2
         state["minutes"][name] = round(state["minutes"].get(name, 0) + credit, 3)
-        state["total_minutes"][name] = round(state["total_minutes"].get(name, 0) + credit, 3)
 
     state["last_poll"] = now_ts
     state["prev_online"] = sorted(now_names)
@@ -256,29 +245,6 @@ def build_message(state, online_staff, seen=None):
             "inline": False,
         }]
 
-    lifetime_entries = []
-    for name, minutes in state["total_minutes"].items():
-        key = name.lower()
-        if key not in STAFF or minutes <= 0:
-            continue
-        real_name, rank = STAFF[key]
-        lifetime_entries.append((real_name, rank, minutes))
-    lifetime_entries.sort(
-        key=lambda item: (
-            -item[2],
-            RANK_ORDER.index(item[1]) if item[1] in RANK_ORDER else 999,
-            item[0].lower(),
-        )
-    )
-    lifetime_lines = [
-        f"**{i}.** **{name}** · {rank}\n　　 ⏱️ {fmt_time(minutes)}"
-        for i, (name, rank, minutes) in enumerate(lifetime_entries, start=1)
-    ]
-    fields.append({
-        "name": "🏅 BOT BAŞLADIĞINDAN BERİ TOPLAM AKTİFLİK",
-        "value": "\n\n".join(lifetime_lines) if lifetime_lines else "Henüz kayıtlı toplam aktiflik yok.",
-        "inline": False,
-    })
 
     return {
         "title": "👥 AVENOR MC · YETKİLİ AKTİFLİĞİ",
