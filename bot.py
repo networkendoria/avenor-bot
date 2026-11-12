@@ -42,7 +42,7 @@ def send(content):
         print("--------------------------")
         return
     body = json.dumps(
-        {"content": content, "allowed_mentions": {"parse": ["everyone"]}}
+        {"content": content, "allowed_mentions": {"parse": []}}
     ).encode()
     req = urllib.request.Request(
         WEBHOOK,
@@ -117,9 +117,6 @@ def main():
         "**Not: Her 30 dakikada bir yetkililer mesaj olarak loglanır. "
         "Gün sonunda en çok aktif olan yetkili için tebrik mesajı gönderilir.**"
     )
-    if online_staff:
-        lines.append("")
-        lines.append("@here")
 
     send("\n".join(lines))
     json.dump(state, open("state.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
