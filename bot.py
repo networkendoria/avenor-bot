@@ -203,9 +203,14 @@ def build_message(state, online_staff, seen=None):
     entries = dict(seen or {})
     for name, rank in online_staff:
         entries[name] = rank
+    # En cok aktif olan yetkili en ustte; esitlikte rutbe sirasi kullanilir.
     rows = sorted(
         entries.items(),
-        key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
+        key=lambda x: (
+            -state["minutes"].get(x[0], 0),
+            RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
+            x[0].lower(),
+        ),
     )
     fields = []
     if rows:
@@ -235,7 +240,13 @@ def build_message(state, online_staff, seen=None):
         for n in state["minutes"]
         if n not in listed and n.lower() in STAFF
     ]
-    earlier.sort(key=lambda x: RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999)
+    earlier.sort(
+        key=lambda x: (
+            -state["minutes"].get(x[0], 0),
+            RANK_ORDER.index(x[1]) if x[1] in RANK_ORDER else 999,
+            x[0].lower(),
+        )
+    )
     if earlier:
         lines = [
             f"**{name}** × {rank} — {fmt_time(state['minutes'].get(name, 0))}"
