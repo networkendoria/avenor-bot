@@ -1,18 +1,22 @@
 {
   "date": "2026-11-13",
   "minutes": {
-    "ByWaffle": 27.392,
-    "neymar11": 131.876,
+    "ByWaffle": 28.397,
+    "neymar11": 159.334,
     "ZyvenN": 9.022,
-    "Geredeli1871": 6.701
+    "Geredeli1871": 6.701,
+    "SakaryaMan": 5.547
   },
-  "last_poll": 1794557407.3666592,
+  "last_poll": 1794559055.0503418,
   "prev_online": [
+    "SakaryaMan",
     "neymar11"
   ],
-  "last_post": 1794556981.269392,
+  "last_post": 1794558813.2540312,
   "window_seen": {
-    "neymar11": "Moderatör"
+    "SakaryaMan": "Rehber",
+    "neymar11": "Moderatör",
+    "ByWaffle": "Premium ⭐⭐⭐"
   },
   "history": {},
   "last_monthly": "2026-11",
