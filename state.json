@@ -1,16 +1,18 @@
 {
   "date": "2026-11-13",
   "minutes": {
-    "ByWaffle": 1.022,
-    "neymar11": 0.508
+    "ByWaffle": 1.533,
+    "neymar11": 1.856
   },
-  "last_poll": 1794548143.942399,
+  "last_poll": 1794548224.8271012,
   "prev_online": [
+    "ByWaffle",
     "neymar11"
   ],
   "last_post": 1794547838.928399,
   "window_seen": {
-    "neymar11": "Moderatör"
+    "neymar11": "Moderatör",
+    "ByWaffle": "Premium ⭐⭐⭐"
   },
   "history": {},
   "last_monthly": "2026-11",
