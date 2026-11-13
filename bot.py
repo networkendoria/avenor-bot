@@ -25,6 +25,7 @@ MAX_GAP_MIN = 5.0  # iki bakis arasi bundan uzunsa en fazla bu kadar sayilir
 CFG = json.load(open("staff.json", encoding="utf-8"))
 STAFF = {k.lower(): (k, v) for k, v in CFG["staff"].items()}
 RANK_ORDER = CFG["rank_order"]  # en ustteki rutbe en uste yazilir
+PAUSED = bool(CFG.get("paused", False))  # True: log durdurulur, tek bilgilendirme mesaji atilir
 START_DATE = CFG.get("start_date", "")  # bu tarihe (00:00) kadar hicbir sey sayilmaz/atilmaz
 REPORT_DAY = 13  # aylik donem: her ayin 13'unden sonraki ayin 13'une
 MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
@@ -361,9 +362,71 @@ def maybe_post(state, online_staff, now_ts):
     return True
 
 
+def pause_message(now_dt):
+    stop_txt = f"{date_tr(now_dt.strftime('%Y-%m-%d'))} · {now_dt.strftime('%H:%M')}"
+    return {
+        "title": "⏸️ YETKİLİ LOGU DURDURULDU",
+        "description": (
+            "Yetkili aktiflik logu **geçici olarak durduruldu.**\n"
+            "Veriler doğru ve eksiksiz toplanamadığı için yanlış süre yazmamak adına "
+            "sistemi şimdilik kapattık.\n\u200b"
+        ),
+        "fields": [
+            {
+                "name": "🕒 Durdurulma zamanı",
+                "value": stop_txt,
+                "inline": False,
+            },
+            {
+                "name": "📌 Sebep",
+                "value": (
+                    "Canlı harita (map.avenormc.com) çevrimiçi oyuncuların büyük kısmını göstermiyor. "
+                    "Örneğin oyunda 22 kişi varken listede yalnızca 1-7 kişi görünüyor. "
+                    "Bu yüzden yetkililerin aktiflik süreleri gerçeğinden düşük, bazıları ise hiç "
+                    "görünmüyor."
+                ),
+                "inline": False,
+            },
+            {
+                "name": "🛠️ Ne yapılacak?",
+                "value": (
+                    "Haritada tüm oyuncuların görünmesi sağlandığında log **kaldığı yerden "
+                    "yeniden başlatılacak.** Kayıtlı veriler silinmedi, korunuyor."
+                ),
+                "inline": False,
+            },
+            {
+                "name": "⏳ Bu sürede",
+                "value": "Yeni log, günün en aktifi ve aylık rapor mesajı gönderilmeyecek.",
+                "inline": False,
+            },
+        ],
+        "footer": {"text": "AvenorMC · Yetkili aktiflik logu · Geçici olarak kapalı"},
+    }
+
+
 def main():
     start = time.time()
     state = load_state()
+
+    # Duraklatma: tek bir bilgilendirme mesaji at, sonra hicbir sey yapma
+    if PAUSED:
+        if not state.get("pause_notified"):
+            now = time.time()
+            if send(pause_message(datetime.fromtimestamp(now, TZ))):
+                state["pause_notified"] = True
+                state["paused_at"] = now
+                save_state(state)
+                print("Duraklatma mesaji gonderildi.")
+        else:
+            print("Log duraklatildi; yapilacak bir sey yok.")
+        return
+    if state.get("pause_notified"):  # tekrar baslatildi
+        state["pause_notified"] = False
+        state["paused_at"] = None
+        state["last_poll"] = None  # duraklama suresi sayilmasin
+        state["prev_online"] = []
+        state["last_post"] = None
 
     while True:
         now_ts = time.time()

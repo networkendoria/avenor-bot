@@ -1,8 +1,8 @@
 name: Yetkili Log
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"
+  # schedule:   # duraklatma sirasinda kapali. Tekrar baslatirken ac:
+  #   - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
