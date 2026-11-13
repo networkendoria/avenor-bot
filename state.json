@@ -3,16 +3,20 @@
   "minutes": {
     "ByWaffle": 40.144,
     "neymar11": 251.664,
-    "ZyvenN": 9.022,
+    "ZyvenN": 13.561,
     "Geredeli1871": 6.701,
     "SakaryaMan": 49.001,
-    "Noway7": 62.977
+    "Noway7": 89.777
   },
-  "last_poll": 1794565652.8348837,
-  "prev_online": [],
-  "last_post": 1794565531.7858589,
+  "last_poll": 1794567301.354319,
+  "prev_online": [
+    "Noway7",
+    "ZyvenN"
+  ],
+  "last_post": 1794566756.1220226,
   "window_seen": {
-    "Noway7": "Deneme Rehber"
+    "Noway7": "Deneme Rehber",
+    "ZyvenN": "Geliştirici"
   },
   "history": {},
   "last_monthly": "2026-11",
