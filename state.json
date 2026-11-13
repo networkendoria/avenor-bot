@@ -1,12 +1,19 @@
 {
-  "date": "",
-  "minutes": {},
-  "last_poll": null,
-  "prev_online": [],
-  "last_post": null,
-  "window_seen": {},
+  "date": "2026-11-13",
+  "minutes": {
+    "ByWaffle": 1.022,
+    "neymar11": 0.508
+  },
+  "last_poll": 1794548143.942399,
+  "prev_online": [
+    "neymar11"
+  ],
+  "last_post": 1794547838.928399,
+  "window_seen": {
+    "neymar11": "Moderatör"
+  },
   "history": {},
-  "last_monthly": null,
+  "last_monthly": "2026-11",
   "pause_notified": false,
   "paused_at": null
 }
