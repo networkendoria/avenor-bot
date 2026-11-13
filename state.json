@@ -2,17 +2,19 @@
   "date": "2026-11-13",
   "minutes": {
     "ByWaffle": 40.144,
-    "neymar11": 251.664,
+    "neymar11": 253.196,
     "ZyvenN": 15.233,
     "Geredeli1871": 6.701,
     "SakaryaMan": 49.001,
     "Noway7": 154.911
   },
-  "last_poll": 1794575696.366399,
-  "prev_online": [],
-  "last_post": 1794575330.6224954,
+  "last_poll": 1794576945.0883768,
+  "prev_online": [
+    "neymar11"
+  ],
+  "last_post": 1794577164.8414278,
   "window_seen": {
-    "Noway7": "Deneme Rehber"
+    "neymar11": "Moderatör"
   },
   "history": {},
   "last_monthly": "2026-11",
