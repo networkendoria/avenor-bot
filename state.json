@@ -1,15 +1,17 @@
 {
   "date": "2026-11-14",
   "minutes": {
-    "GalacticOtter": 7.15,
+    "GalacticOtter": 34.852,
     "SakaryaMan": 2.532
   },
-  "last_poll": 1794603976.6801293,
+  "last_poll": 1794605638.8106594,
   "prev_online": [
     "GalacticOtter"
   ],
-  "last_post": 1794603976.6801293,
-  "window_seen": {},
+  "last_post": 1794605213.8682823,
+  "window_seen": {
+    "GalacticOtter": "Deneme Rehber"
+  },
   "history": {
     "2026-11-13": {
       "ByWaffle": 71.722,
