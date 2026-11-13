@@ -5,16 +5,21 @@
     "neymar11": 287.286,
     "ZyvenN": 15.233,
     "Geredeli1871": 62.766,
-    "SakaryaMan": 169.874,
+    "SakaryaMan": 197.784,
     "Noway7": 154.911,
-    "TwexSnowyOrg": 106.55
+    "TwexSnowyOrg": 106.55,
+    "GalacticOtter": 18.002
   },
-  "last_poll": 1794592317.0760434,
+  "last_poll": 1794593991.7466786,
   "prev_online": [
+    "GalacticOtter",
     "SakaryaMan"
   ],
-  "last_post": 1794592317.0760434,
-  "window_seen": {},
+  "last_post": 1794593561.05927,
+  "window_seen": {
+    "SakaryaMan": "Rehber",
+    "GalacticOtter": "Deneme Rehber"
+  },
   "history": {},
   "last_monthly": "2026-11",
   "pause_notified": false,
