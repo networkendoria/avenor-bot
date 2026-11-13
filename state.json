@@ -1,26 +1,27 @@
 {
-  "date": "2026-11-13",
+  "date": "2026-11-14",
   "minutes": {
-    "ByWaffle": 71.722,
-    "neymar11": 287.286,
-    "ZyvenN": 15.233,
-    "Geredeli1871": 62.766,
-    "SakaryaMan": 328.934,
-    "Noway7": 154.911,
-    "TwexSnowyOrg": 171.459,
-    "GalacticOtter": 151.489
+    "GalacticOtter": 7.15,
+    "SakaryaMan": 2.532
   },
-  "last_poll": 1794602305.861204,
+  "last_poll": 1794603976.6801293,
   "prev_online": [
-    "GalacticOtter",
-    "SakaryaMan"
+    "GalacticOtter"
   ],
-  "last_post": 1794602180.9867053,
-  "window_seen": {
-    "GalacticOtter": "Deneme Rehber",
-    "SakaryaMan": "Rehber"
+  "last_post": 1794603976.6801293,
+  "window_seen": {},
+  "history": {
+    "2026-11-13": {
+      "ByWaffle": 71.722,
+      "neymar11": 287.286,
+      "ZyvenN": 15.233,
+      "Geredeli1871": 62.766,
+      "SakaryaMan": 349.629,
+      "Noway7": 154.911,
+      "TwexSnowyOrg": 171.459,
+      "GalacticOtter": 172.184
+    }
   },
-  "history": {},
   "last_monthly": "2026-11",
   "pause_notified": false,
   "paused_at": null
