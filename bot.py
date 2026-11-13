@@ -26,7 +26,11 @@ CFG = json.load(open("staff.json", encoding="utf-8"))
 STAFF = {k.lower(): (k, v) for k, v in CFG["staff"].items()}
 RANK_ORDER = CFG["rank_order"]  # en ustteki rutbe en uste yazilir
 PAUSED = bool(CFG.get("paused", False))  # True: log durdurulur, tek bilgilendirme mesaji atilir
-START_DATE = CFG.get("start_date", "")  # bu tarihe (00:00) kadar hicbir sey sayilmaz/atilmaz
+START_AT = (
+    datetime.fromisoformat(CFG["start_at"])
+    if CFG.get("start_at")
+    else (datetime.fromisoformat(CFG["start_date"]).replace(tzinfo=TZ) if CFG.get("start_date") else None)
+)  # bu ana kadar hicbir sey sayilmaz/atilmaz
 REPORT_DAY = 13  # aylik donem: her ayin 13'unden sonraki ayin 13'une
 MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
 
@@ -37,23 +41,44 @@ def http_json(url):
         return json.load(r)
 
 
+DIMMED_URL = os.environ.get(
+    "DIMMED_URL", "https://map.avenormc.com/tiles/dimmed_players.json"
+)
+
+
+def _names(data):
+    names = []
+    if isinstance(data, dict) and isinstance(data.get("players"), list):
+        for player in data["players"]:
+            if isinstance(player, dict):
+                name = player.get("name")
+                if isinstance(name, str) and name.strip():
+                    names.append(name.strip().lstrip("."))
+    return names
+
+
 def get_online_players():
+    """Haritada gorunen (players.json) + gizlenen/madendeki (dimmed_players.json) oyunculari birlestirir.
+    Ayni isim iki listede de varsa tek sayilir."""
     try:
         data = http_json(PLAYERS_URL)
         if not isinstance(data, dict) or not isinstance(data.get("players"), list):
             print("Oyuncu listesi beklenen Squaremap formatinda degil; sayim atlandi.")
             return None
-        names = []
-        for player in data["players"]:
-            if not isinstance(player, dict):
-                continue
-            name = player.get("name")
-            if isinstance(name, str) and name.strip():
-                names.append(name.strip().lstrip("."))
-        return names
+        names = _names(data)
     except Exception as e:
         print(f"Oyuncu listesi alinamadi: {e}")
         return None  # site kapali/hatali: bu bakista sayim yapma
+    try:
+        names += _names(http_json(DIMMED_URL))
+    except Exception as e:
+        print(f"Gizli oyuncu listesi alinamadi (sadece gorunenler sayildi): {e}")
+    unique, seen = [], set()
+    for n in names:
+        if n.lower() not in seen:
+            seen.add(n.lower())
+            unique.append(n)
+    return unique
 
 
 EMBED_COLOR = 0xF1C40F  # sari serit
@@ -430,10 +455,9 @@ def main():
 
     while True:
         now_ts = time.time()
-        today_s = datetime.fromtimestamp(now_ts, TZ).strftime("%Y-%m-%d")
-        if START_DATE and today_s < START_DATE:
-            # Baslangic tarihi (00:00) gelmeden hicbir sey sayilmaz ve mesaj atilmaz
-            print(f"Baslangic bekleniyor: {START_DATE} 00:00")
+        if START_AT and datetime.fromtimestamp(now_ts, TZ) < START_AT:
+            # Baslangic zamani gelmeden hicbir sey sayilmaz ve mesaj atilmaz
+            print(f"Baslangic bekleniyor: {START_AT.strftime('%d.%m.%Y %H:%M')}")
             if time.time() + POLL_SECONDS - start > RUN_MINUTES * 60:
                 break
             time.sleep(POLL_SECONDS)

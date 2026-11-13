@@ -1,15 +1,12 @@
 {
-  "date": "2026-11-13",
-  "minutes": {
-    "GalacticOtter": 2.026,
-    "Noway7": 11.733
-  },
-  "last_poll": 1794540604.0482473,
+  "date": "",
+  "minutes": {},
+  "last_poll": null,
   "prev_online": [],
-  "last_post": 1794540422.040112,
+  "last_post": null,
   "window_seen": {},
   "history": {},
-  "last_monthly": "2026-11",
-  "pause_notified": true,
-  "paused_at": 1794545476.6565988
+  "last_monthly": null,
+  "pause_notified": false,
+  "paused_at": null
 }
