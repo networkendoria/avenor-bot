@@ -1,28 +1,24 @@
 {
   "date": "2026-11-14",
   "minutes": {
-    "GalacticOtter": 329.474,
-    "SakaryaMan": 232.417,
-    "neymar11": 52.389,
-    "Noway7": 250.115,
-    "Geredeli1871": 92.658
+    "GalacticOtter": 356.916,
+    "SakaryaMan": 259.859,
+    "neymar11": 79.831,
+    "Noway7": 277.557,
+    "Geredeli1871": 120.1,
+    "ZyvenN": 14.654
   },
-  "last_poll": 1794656823.1514409,
+  "last_poll": 1794658469.611225,
   "prev_online": [
     "GalacticOtter",
     "Geredeli1871",
     "Noway7",
     "SakaryaMan",
+    "ZyvenN",
     "neymar11"
   ],
-  "last_post": 1794656641.0070736,
-  "window_seen": {
-    "SakaryaMan": "Rehber",
-    "Geredeli1871": "Moderatör",
-    "neymar11": "Moderatör",
-    "GalacticOtter": "Deneme Rehber",
-    "Noway7": "Deneme Rehber"
-  },
+  "last_post": 1794658469.611225,
+  "window_seen": {},
   "history": {
     "2026-11-13": {
       "neymar11": 287.286,
