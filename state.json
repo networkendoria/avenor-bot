@@ -3,12 +3,17 @@
   "minutes": {
     "Noway7": 234.77,
     "neymar11": 10.852,
-    "SakaryaMan": 37.356
+    "SakaryaMan": 37.356,
+    "Geredeli1871": 20.84
   },
-  "last_poll": 1794723272.0948384,
-  "prev_online": [],
-  "last_post": 1794723272.0948384,
-  "window_seen": {},
+  "last_poll": 1794724930.6713827,
+  "prev_online": [
+    "Geredeli1871"
+  ],
+  "last_post": 1794724504.0379033,
+  "window_seen": {
+    "Geredeli1871": "Moderatör"
+  },
   "history": {
     "2026-11-13": {
       "neymar11": 287.286,
