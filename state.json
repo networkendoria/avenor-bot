@@ -3,13 +3,16 @@
   "minutes": {
     "Noway7": 360.427,
     "neymar11": 350.922,
-    "SakaryaMan": 322.666,
-    "Geredeli1871": 279.865,
+    "SakaryaMan": 350.11,
+    "Geredeli1871": 302.638,
     "ZyvenN": 41.672
   },
-  "last_poll": 1794762943.9092646,
-  "prev_online": [],
-  "last_post": 1794762397.8860676,
+  "last_poll": 1794764596.0168486,
+  "prev_online": [
+    "Geredeli1871",
+    "SakaryaMan"
+  ],
+  "last_post": 1794764230.904955,
   "window_seen": {
     "SakaryaMan": "Rehber",
     "Geredeli1871": "Moderatör"
