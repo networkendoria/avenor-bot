@@ -2,12 +2,17 @@
   "date": "2026-11-16",
   "minutes": {
     "ZyvenN": 22.992,
-    "SakaryaMan": 16.872
+    "SakaryaMan": 16.872,
+    "Noway7": 3.539
   },
-  "last_poll": 1794779523.4382024,
-  "prev_online": [],
-  "last_post": 1794778977.249851,
-  "window_seen": {},
+  "last_poll": 1794781174.1671138,
+  "prev_online": [
+    "Noway7"
+  ],
+  "last_post": 1794780809.9838414,
+  "window_seen": {
+    "Noway7": "Deneme Rehber"
+  },
   "history": {
     "2026-11-13": {
       "neymar11": 287.286,
