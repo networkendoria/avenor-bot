@@ -1,23 +1,21 @@
 {
   "date": "2026-11-16",
   "minutes": {
-    "ZyvenN": 26.246,
-    "SakaryaMan": 217.2,
-    "Noway7": 241.11,
-    "neymar11": 375.221,
-    "Geredeli1871": 316.336
+    "ZyvenN": 30.394,
+    "SakaryaMan": 245.159,
+    "Noway7": 269.069,
+    "neymar11": 393.467,
+    "Geredeli1871": 344.295
   },
-  "last_poll": 1794837881.6794753,
+  "last_poll": 1794839559.2089386,
   "prev_online": [
     "Geredeli1871",
     "Noway7",
-    "SakaryaMan",
-    "neymar11"
+    "SakaryaMan"
   ],
-  "last_post": 1794837639.5427983,
+  "last_post": 1794839497.9530885,
   "window_seen": {
     "SakaryaMan": "Rehber",
-    "neymar11": "Moderatör",
     "Geredeli1871": "Moderatör",
     "Noway7": "Deneme Rehber"
   },
