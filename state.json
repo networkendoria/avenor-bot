@@ -1,18 +1,22 @@
 {
   "date": "2026-11-17",
   "minutes": {
-    "SakaryaMan": 8.96,
-    "Geredeli1871": 59.522,
-    "neymar11": 95.604
+    "SakaryaMan": 14.079,
+    "Geredeli1871": 64.641,
+    "neymar11": 97.676
   },
-  "last_poll": 1794907395.7329757,
+  "last_poll": 1794907702.9583094,
   "prev_online": [
     "Geredeli1871",
     "SakaryaMan",
     "neymar11"
   ],
   "last_post": 1794907395.7329757,
-  "window_seen": {},
+  "window_seen": {
+    "Geredeli1871": "Moderatör",
+    "neymar11": "Moderatör",
+    "SakaryaMan": "Rehber"
+  },
   "history": {
     "2026-11-13": {
       "neymar11": 287.286,
