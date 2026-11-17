@@ -25,7 +25,10 @@ MAX_GAP_MIN = 5.0  # iki bakis arasi bundan uzunsa en fazla bu kadar sayilir
 CFG = json.load(open("staff.json", encoding="utf-8"))
 STAFF = {k.lower(): (k, v) for k, v in CFG["staff"].items()}
 RANK_ORDER = CFG["rank_order"]  # en ustteki rutbe en uste yazilir
-PAUSED = bool(CFG.get("paused", False))  # True: log durdurulur, tek bilgilendirme mesaji atilir
+PAUSE_UNTIL = datetime.fromisoformat(CFG["pause_until"]) if CFG.get("pause_until") else None
+PAUSED = bool(CFG.get("paused", False)) and not (
+    PAUSE_UNTIL and datetime.now(TZ) >= PAUSE_UNTIL
+)  # True: log durdurulur, tek bilgilendirme mesaji atilir (pause_until gelince kendiliginden biter)
 START_AT = (
     datetime.fromisoformat(CFG["start_at"])
     if CFG.get("start_at")
@@ -389,40 +392,25 @@ def maybe_post(state, online_staff, now_ts):
 
 def pause_message(now_dt):
     stop_txt = f"{date_tr(now_dt.strftime('%Y-%m-%d'))} · {now_dt.strftime('%H:%M')}"
+    if PAUSE_UNTIL:
+        until_txt = f"{date_tr(PAUSE_UNTIL.strftime('%Y-%m-%d'))} · {PAUSE_UNTIL.strftime('%H:%M')}"
+    else:
+        until_txt = "Belirsiz"
     return {
         "title": "⏸️ YETKİLİ LOGU DURDURULDU",
         "description": (
             "Yetkili aktiflik logu **geçici olarak durduruldu.**\n"
-            "Veriler doğru ve eksiksiz toplanamadığı için yanlış süre yazmamak adına "
-            "sistemi şimdilik kapattık.\n\u200b"
+            "Sistem bakıma alındı, **tüm süreler sıfırlandı.**\n\u200b"
         ),
         "fields": [
+            {"name": "🕒 Durdurulma zamanı", "value": stop_txt, "inline": True},
+            {"name": "▶️ Yeniden başlama", "value": until_txt, "inline": True},
             {
-                "name": "🕒 Durdurulma zamanı",
-                "value": stop_txt,
-                "inline": False,
-            },
-            {
-                "name": "📌 Sebep",
+                "name": "📌 Bilgi",
                 "value": (
-                    "Canlı harita (map.avenormc.com) çevrimiçi oyuncuların büyük kısmını göstermiyor. "
-                    "Örneğin oyunda 22 kişi varken listede yalnızca 1-7 kişi görünüyor. "
-                    "Bu yüzden yetkililerin aktiflik süreleri gerçeğinden düşük, bazıları ise hiç "
-                    "görünmüyor."
+                    "Bu sürede yeni log, günün en aktifi ve aylık rapor mesajı gönderilmeyecek. "
+                    "Belirtilen tarihte log **otomatik olarak sıfırdan başlayacak.**"
                 ),
-                "inline": False,
-            },
-            {
-                "name": "🛠️ Ne yapılacak?",
-                "value": (
-                    "Haritada tüm oyuncuların görünmesi sağlandığında log **kaldığı yerden "
-                    "yeniden başlatılacak.** Kayıtlı veriler silinmedi, korunuyor."
-                ),
-                "inline": False,
-            },
-            {
-                "name": "⏳ Bu sürede",
-                "value": "Yeni log, günün en aktifi ve aylık rapor mesajı gönderilmeyecek.",
                 "inline": False,
             },
         ],

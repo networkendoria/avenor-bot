@@ -24,6 +24,7 @@
       "Deneme Rehber"
     ]
   },
-  "paused": false,
-  "start_at": "2026-11-13T08:20:00+03:00"
+  "paused": true,
+  "start_at": "2026-11-21T00:00:00+03:00",
+  "pause_until": "2026-11-21T00:00:00+03:00"
 }
