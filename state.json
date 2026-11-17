@@ -7,6 +7,6 @@
   "window_seen": {},
   "history": {},
   "last_monthly": "2026-11",
-  "pause_notified": false,
-  "paused_at": null
+  "pause_notified": true,
+  "paused_at": 1794908169.5720277
 }
