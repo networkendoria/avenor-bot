@@ -1,20 +1,19 @@
 {
   "date": "2026-11-17",
   "minutes": {
-    "SakaryaMan": 16.803,
-    "Geredeli1871": 67.365,
+    "SakaryaMan": 21.221,
+    "Geredeli1871": 70.767,
     "neymar11": 98.877,
     "Noway7": 65
   },
-  "last_poll": 1794907866.417408,
+  "last_poll": 1794908131.5061378,
   "prev_online": [
     "Geredeli1871",
     "SakaryaMan"
   ],
-  "last_post": 1794907395.7329757,
+  "last_post": 1794908010.0041554,
   "window_seen": {
     "Geredeli1871": "Moderatör",
-    "neymar11": "Moderatör",
     "SakaryaMan": "Rehber"
   },
   "history": {
@@ -24,7 +23,7 @@
       "Geredeli1871": 62.766,
       "SakaryaMan": 349.629,
       "GalacticOtter": 172.184,
-      "Noway7": 155
+      "Noway7": 155.0
     },
     "2026-11-14": {
       "GalacticOtter": 363.656,
@@ -32,21 +31,21 @@
       "neymar11": 510.289,
       "Geredeli1871": 264.616,
       "ZyvenN": 55.209,
-      "Noway7": 803
+      "Noway7": 803.0
     },
     "2026-11-15": {
       "neymar11": 350.922,
       "SakaryaMan": 540.677,
       "Geredeli1871": 415.633,
       "ZyvenN": 42.181,
-      "Noway7": 360
+      "Noway7": 360.0
     },
     "2026-11-16": {
       "ZyvenN": 30.394,
       "SakaryaMan": 526.904,
       "neymar11": 442.89,
       "Geredeli1871": 551.508,
-      "Noway7": 542
+      "Noway7": 542.0
     }
   },
   "last_monthly": "2026-11",
