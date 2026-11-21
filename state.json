@@ -2,16 +2,18 @@
   "date": "2026-11-21",
   "minutes": {
     "Noway7": 22.468,
-    "neymar11": 187.864,
-    "SakaryaMan": 57.919
+    "neymar11": 212.469,
+    "SakaryaMan": 83.032
   },
-  "last_poll": 1795258015.0535827,
+  "last_poll": 1795259673.812989,
   "prev_online": [
-    "SakaryaMan",
     "neymar11"
   ],
-  "last_post": 1795258015.0535827,
-  "window_seen": {},
+  "last_post": 1795259247.9627924,
+  "window_seen": {
+    "neymar11": "Moderatör",
+    "SakaryaMan": "Rehber"
+  },
   "history": {},
   "last_monthly": "2026-11",
   "pause_notified": false,
