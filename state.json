@@ -1,10 +1,16 @@
 {
   "date": "2026-11-21",
-  "minutes": {},
-  "last_poll": 1795219952.763211,
-  "prev_online": [],
-  "last_post": 1795219528.4135976,
-  "window_seen": {},
+  "minutes": {
+    "Noway7": 0.504
+  },
+  "last_poll": 1795221611.7785945,
+  "prev_online": [
+    "Noway7"
+  ],
+  "last_post": 1795221369.592851,
+  "window_seen": {
+    "Noway7": "Deneme Rehber"
+  },
   "history": {},
   "last_monthly": "2026-11",
   "pause_notified": false,
