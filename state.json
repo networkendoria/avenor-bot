@@ -1,11 +1,14 @@
 {
   "date": "2026-11-21",
   "minutes": {
-    "Noway7": 22.468
+    "Noway7": 22.468,
+    "neymar11": 1.516
   },
-  "last_poll": 1795244757.7846484,
-  "prev_online": [],
-  "last_post": 1795244575.5638242,
+  "last_poll": 1795246408.500737,
+  "prev_online": [
+    "neymar11"
+  ],
+  "last_post": 1795246408.500737,
   "window_seen": {},
   "history": {},
   "last_monthly": "2026-11",
